@@ -1,0 +1,23 @@
+{
+  "name": "practical-project",
+  "version": "1.0.0",
+  "description": "本项目作为个人实战项目的后端，采用模块化设计，支持多子系统扩展。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fanchaowei/express-practical-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fanchaowei/express-practical-project/issues"
+  },
+  "homepage": "https://github.com/fanchaowei/express-practical-project#readme"
+}
