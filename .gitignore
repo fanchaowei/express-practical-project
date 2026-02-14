@@ -35,3 +35,5 @@ coverage/
 
 # 上传文件（开发阶段）
 uploads/
+
+/src/generated/prisma
