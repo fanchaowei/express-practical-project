@@ -10,14 +10,36 @@
 
 // 导入 Prisma 客户端类
 import { PrismaClient } from '@prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
 // 导入环境配置，用于根据不同环境设置不同的日志级别
 import { env } from './env';
 
 /**
+ * 创建 SQLite adapter
+ *
+ * Prisma 7 新要求：
+ * - 需要使用 driver adapter 来连接数据库
+ * - adapter 是数据库驱动的抽象层，负责实际的数据库通信
+ *
+ * 什么是 adapter？
+ * - adapter（适配器）是设计模式中的一种
+ * - 作用：让不兼容的接口可以一起工作
+ * - 这里：让 better-sqlite3（数据库驱动）与 Prisma（ORM）可以一起工作
+ *
+ * DATABASE_URL 格式（SQLite）：
+ * - "file:./dev.db" 表示在当前目录创建 dev.db 文件
+ * - SQLite 是文件型数据库，所有数据存储在一个文件中
+ */
+const adapter = new PrismaBetterSqlite3({
+  url: env.DATABASE_URL || 'file:./dev.db',
+});
+
+/**
  * 创建 Prisma 客户端实例
  *
  * 配置说明：
+ * - adapter: Prisma 7 新增的必需参数，用于连接数据库
  * - log: 控制 Prisma 输出的日志类型
  *   - 开发环境（development）：输出查询、错误、警告日志，方便调试
  *   - 生产环境（production）：只输出错误日志，减少日志量
@@ -28,6 +50,7 @@ import { env } from './env';
  *   表示：如果是开发环境，使用 A，否则使用 B
  */
 const prisma = new PrismaClient({
+  adapter,
   log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
