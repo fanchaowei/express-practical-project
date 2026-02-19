@@ -200,9 +200,9 @@ errorHandler 中间件统一处理
 
 - **`prisma/schema.prisma`**：定义数据模型
 - **`prisma.config.ts`**（根目录）：配置数据源 URL（Prisma 7 新方式）
-- **Driver Adapter**：使用 `@prisma/adapter-better-sqlite3` 连接 SQLite
+- **Driver Adapter**：使用 `@prisma/adapter-pg` 连接 PostgreSQL
 
-开发环境使用 SQLite（文件型数据库），生产环境可切换为 PostgreSQL。
+数据库通过 Docker Compose 启动，使用 PostgreSQL 15。
 
 ---
 

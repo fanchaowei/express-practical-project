@@ -10,13 +10,13 @@
 
 // 导入 Prisma 客户端类
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 // 导入环境配置，用于根据不同环境设置不同的日志级别
 import { env } from './env';
 
 /**
- * 创建 SQLite adapter
+ * 创建 PostgreSQL adapter
  *
  * Prisma 7 新要求：
  * - 需要使用 driver adapter 来连接数据库
@@ -25,15 +25,15 @@ import { env } from './env';
  * 什么是 adapter？
  * - adapter（适配器）是设计模式中的一种
  * - 作用：让不兼容的接口可以一起工作
- * - 这里：让 better-sqlite3（数据库驱动）与 Prisma（ORM）可以一起工作
+ * - 这里：让 pg（PostgreSQL 驱动）与 Prisma（ORM）可以一起工作
  *
- * DATABASE_URL 格式（SQLite）：
- * - "file:./dev.db" 表示在当前目录创建 dev.db 文件
- * - SQLite 是文件型数据库，所有数据存储在一个文件中
+ * DATABASE_URL 格式（PostgreSQL）：
+ * - "postgresql://user:password@host:port/database"
+ * - 例如："postgresql://postgres:postgres@localhost:5432/practical_project"
+ * - 通过 Docker Compose 启动的 PostgreSQL 容器默认监听 5432 端口
+ * - connectionString：pg PoolConfig 的连接字符串参数名（不是 url）
  */
-const adapter = new PrismaBetterSqlite3({
-  url: env.DATABASE_URL || 'file:./dev.db',
-});
+const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
 
 /**
  * 创建 Prisma 客户端实例
