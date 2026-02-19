@@ -37,4 +37,9 @@ coverage/
 uploads/*
 !uploads/.gitkeep
 
+# SQLite 数据库文件
+*.db
+*.db-shm
+*.db-wal
+
 /src/generated/prisma
