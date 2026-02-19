@@ -45,7 +45,7 @@ const router = Router();
  * - 等同于：function(req, res) { ... }
  * - 箭头函数更简洁，常用于回调函数
  */
-router.get('/health', (req, res) => {
+router.get('/health', (_req, res) => {
   /**
    * 使用 ResponseUtil.success 返回成功响应
    *
@@ -80,10 +80,10 @@ router.get('/health', (req, res) => {
  * - /api/v1：表示这是 API 的第 1 个版本
  * - 版本化的好处：后续可以添加 /api/v2，同时保持 v1 兼容
  */
-router.get('/api/v1', (req, res) => {
+router.get('/api/v1', (_req, res) => {
   ResponseUtil.success(res, {
-    version: '1.0.0',           // API 版本号
-    message: 'API is running',  // 状态消息
+    version: '1.0.0', // API 版本号
+    message: 'API is running', // 状态消息
   });
 });
 

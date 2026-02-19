@@ -21,13 +21,13 @@ dotenv.config();
  * 定义应用程序需要的所有配置项及其类型
  */
 interface EnvConfig {
-  NODE_ENV: string;        // 运行环境：development（开发）、production（生产）、test（测试）
-  PORT: number;            // 服务器监听的端口号，例如：3000
-  DATABASE_URL: string;    // 数据库连接字符串，例如：postgresql://user:pass@localhost:5432/dbname
-  JWT_SECRET: string;      // JWT 密钥，用于加密和验证用户身份令牌（后续会用到）
-  JWT_EXPIRES_IN: string;  // JWT 过期时间，例如：7d（7天）、24h（24小时）
-  UPLOAD_DIR: string;      // 文件上传目录路径
-  MAX_FILE_SIZE: number;   // 文件上传大小限制（字节），例如：5242880 = 5MB
+  NODE_ENV: string; // 运行环境：development（开发）、production（生产）、test（测试）
+  PORT: number; // 服务器监听的端口号，例如：3000
+  DATABASE_URL: string; // 数据库连接字符串，例如：postgresql://user:pass@localhost:5432/dbname
+  JWT_SECRET: string; // JWT 密钥，用于加密和验证用户身份令牌（后续会用到）
+  JWT_EXPIRES_IN: string; // JWT 过期时间，例如：7d（7天）、24h（24小时）
+  UPLOAD_DIR: string; // 文件上传目录路径
+  MAX_FILE_SIZE: number; // 文件上传大小限制（字节），例如：5242880 = 5MB
 }
 
 /**

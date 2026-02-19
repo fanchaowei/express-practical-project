@@ -49,10 +49,10 @@ export class ResponseUtil {
   ): Response {
     // 构造响应对象
     const response: ApiResponse<T> = {
-      success: true,              // 表示请求成功
-      message,                    // 成功消息（ES6 简写，等同于 message: message）
-      data,                       // 返回的数据
-      timestamp: new Date().toISOString(),  // ISO 8601 格式的时间戳，例如：2024-01-01T12:00:00.000Z
+      success: true, // 表示请求成功
+      message, // 成功消息（ES6 简写，等同于 message: message）
+      data, // 返回的数据
+      timestamp: new Date().toISOString(), // ISO 8601 格式的时间戳，例如：2024-01-01T12:00:00.000Z
     };
 
     /**
@@ -90,9 +90,9 @@ export class ResponseUtil {
   ): Response {
     // 构造错误响应对象
     const response: ApiResponse = {
-      success: false,             // 表示请求失败
-      message,                    // 错误消息
-      error,                      // 详细错误信息（可选）
+      success: false, // 表示请求失败
+      message, // 错误消息
+      error, // 详细错误信息（可选）
       timestamp: new Date().toISOString(),
     };
 
@@ -138,11 +138,11 @@ export class ResponseUtil {
     const response: PaginatedResponse<T> = {
       success: true,
       message,
-      data,                       // 当前页的数据
+      data, // 当前页的数据
       pagination: {
-        page,                     // 当前页码
-        limit,                    // 每页条数
-        total,                    // 总条数
+        page, // 当前页码
+        limit, // 每页条数
+        total, // 总条数
         /**
          * Math.ceil() 说明：
          * - ceil：ceiling，天花板，向上取整

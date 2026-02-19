@@ -17,9 +17,9 @@
 import express, { Application } from 'express';
 
 // 导入第三方中间件
-import cors from 'cors';           // 处理跨域请求
-import helmet from 'helmet';       // 设置安全相关的 HTTP 头
-import rateLimit from 'express-rate-limit';  // API 请求频率限制
+import cors from 'cors'; // 处理跨域请求
+import helmet from 'helmet'; // 设置安全相关的 HTTP 头
+import rateLimit from 'express-rate-limit'; // API 请求频率限制
 
 // 导入项目配置和中间件
 import { env } from './config/env';
@@ -100,8 +100,8 @@ app.use(
  * 3. 15 分钟后重置计数
  */
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 分钟
-  max: 100,                   // 限制 100 个请求
+  windowMs: 15 * 60 * 1000, // 15 分钟
+  max: 100, // 限制 100 个请求
   message: 'Too many requests from this IP, please try again later.',
 });
 

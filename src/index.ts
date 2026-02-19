@@ -140,6 +140,7 @@ const startServer = async () => {
        * - 延迟执行函数
        * - 10000 毫秒 = 10 秒
        */
+      // eslint-disable-next-line no-undef
       setTimeout(() => {
         logger.error('Forced shutdown after timeout');
         // 强制退出，状态码 1 表示异常退出

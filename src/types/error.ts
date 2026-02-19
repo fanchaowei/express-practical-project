@@ -29,8 +29,8 @@ export class AppError extends Error {
    * - private：私有属性，只能在类内部访问
    * - protected：受保护属性，只能在类和子类内部访问
    */
-  public statusCode: number;        // HTTP 状态码，例如：404、500
-  public isOperational: boolean;    // 是否为操作性错误（true = 可预期的错误，false = 程序 bug）
+  public statusCode: number; // HTTP 状态码，例如：404、500
+  public isOperational: boolean; // 是否为操作性错误（true = 可预期的错误，false = 程序 bug）
 
   /**
    * 构造函数
