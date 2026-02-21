@@ -221,6 +221,20 @@ errorHandler 中间件统一处理
 
 数据库通过 Docker Compose 启动，使用 PostgreSQL 15。
 
+### 数据库索引
+
+为提升查询性能，已为高频查询字段添加索引：
+
+| 表名 | 索引字段 | 使用场景 |
+|------|---------|---------|
+| Movie | type | 按类型筛选 |
+| Movie | rating | 按评分排序 |
+| Movie | releaseYear | 按年份筛选 |
+| Movie | createdAt | 按创建时间排序 |
+| Image | movieId | 查询影片图片 |
+
+这些索引能够显著提升影片列表查询的性能，特别是在数据量增长后。
+
 ---
 
 ## 认证系统架构
