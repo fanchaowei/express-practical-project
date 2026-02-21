@@ -30,6 +30,11 @@ model Movie {
   images      Image[]
   movieTags   MovieTag[]
 
+  // 添加索引以优化查询性能
+  @@index([type])              // 按类型筛选（高频查询）
+  @@index([rating])            // 按评分排序（高频查询）
+  @@index([releaseYear])       // 按年份筛选（中频查询）
+  @@index([createdAt])         // 按创建时间排序（中频查询）
   @@map("movies")
 }
 
@@ -42,6 +47,8 @@ model Image {
 
   movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
+  // 添加索引以优化关联查询
+  @@index([movieId])   // 查询影片图片（高频查询）
   @@map("images")
 }
 
