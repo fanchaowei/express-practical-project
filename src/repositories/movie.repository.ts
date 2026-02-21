@@ -43,7 +43,7 @@ export class MovieRepository {
   }
 
   /**
-   * 查询影片列表(支持筛选、分页、排序)
+   * 查询影片列表(优化版:精确返回字段,减少数据传输)
    */
   static async findMany(params: {
     where?: Prisma.MovieWhereInput;
@@ -53,13 +53,30 @@ export class MovieRepository {
   }) {
     return prisma.movie.findMany({
       where: params.where,
-      include: {
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        rating: true,
+        releaseYear: true,
+        // comment: false,  // 列表不需要评语（大文本字段）
+        createdAt: true,
+        updatedAt: true,
         images: {
           where: { isCover: true },
+          select: {
+            id: true,
+            path: true,
+          },
         },
         movieTags: {
-          include: {
-            tag: true,
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
