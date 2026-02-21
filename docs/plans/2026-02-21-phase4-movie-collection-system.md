@@ -1678,35 +1678,35 @@ git status
 
 ## 完成检查清单
 
-- [ ] 环境变量已更新(UPLOAD_DIR、MAX_FILE_SIZE)
-- [ ] uploads/movies 目录已创建
-- [ ] multer 和 uuid 依赖已安装
-- [ ] Movie、Image、Tag、MovieTag 模型已添加到 schema.prisma
-- [ ] 数据库迁移已完成,四张表已创建
-- [ ] Prisma Client 已生成
-- [ ] 文件上传配置(upload.ts)已创建
-- [ ] 文件工具(file.util.ts)已创建
-- [ ] TagRepository 已实现
-- [ ] MovieRepository 已实现(支持复杂查询)
-- [ ] TagService 已实现
-- [ ] MovieService 已实现(包含事务和文件清理)
-- [ ] TagController 已实现(角色验证)
-- [ ] MovieController 已实现(处理 multipart/form-data)
-- [ ] 标签路由已创建并应用 JWT 鉴权
-- [ ] 影片路由已创建并应用 JWT 鉴权
-- [ ] 主路由已更新(集成新路由)
-- [ ] 种子脚本已更新(预设标签)
-- [ ] 预设标签已创建(20 个)
-- [ ] 登录接口测试通过
-- [ ] 标签查询接口测试通过
-- [ ] 创建影片接口测试通过(带图片上传)
-- [ ] 查询影片列表接口测试通过
-- [ ] 查询影片详情接口测试通过
-- [ ] 更新影片接口测试通过
-- [ ] 删除影片接口测试通过(级联删除)
-- [ ] 未登录访问返回 401
-- [ ] 代码格式化和检查通过
-- [ ] 代码已提交到 Git
+- [x] 环境变量已更新(UPLOAD_DIR、MAX_FILE_SIZE)
+- [x] uploads/movies 目录已创建
+- [x] multer 和 uuid 依赖已安装
+- [x] Movie、Image、Tag、MovieTag 模型已添加到 schema.prisma
+- [x] 数据库迁移已完成,四张表已创建
+- [x] Prisma Client 已生成
+- [x] 文件上传配置(upload.ts)已创建
+- [x] 文件工具(file.util.ts)已创建
+- [x] TagRepository 已实现
+- [x] MovieRepository 已实现(支持复杂查询)
+- [x] TagService 已实现
+- [x] MovieService 已实现(包含事务和文件清理)
+- [x] TagController 已实现(角色验证)
+- [x] MovieController 已实现(处理 multipart/form-data)
+- [x] 标签路由已创建并应用 JWT 鉴权
+- [x] 影片路由已创建并应用 JWT 鉴权
+- [x] 主路由已更新(集成新路由)
+- [x] 种子脚本已更新(预设标签)
+- [x] 预设标签已创建(20 个)
+- [x] 登录接口测试通过
+- [x] 标签查询接口测试通过
+- [x] 创建影片接口测试通过(带图片上传)
+- [x] 查询影片列表接口测试通过
+- [x] 查询影片详情接口测试通过
+- [x] 更新影片接口测试通过
+- [x] 删除影片接口测试通过(级联删除)
+- [x] 未登录访问返回 401
+- [x] 代码格式化和检查通过
+- [x] 代码已提交到 Git
 
 ---
 

@@ -10,13 +10,20 @@
 src/
 ├── config/          # 配置文件
 │   ├── database.ts  # Prisma 数据库客户端（含 adapter 配置）
-│   └── env.ts       # 环境变量配置与验证
+│   ├── env.ts       # 环境变量配置与验证
+│   └── upload.ts    # 文件上传配置（multer）
 ├── controllers/     # 控制器层
-│   └── auth.controller.ts   # 认证控制器（登录接口）
+│   ├── auth.controller.ts   # 认证控制器（登录接口）
+│   ├── movie.controller.ts  # 影片控制器（CRUD）
+│   └── tag.controller.ts    # 标签控制器（CRUD）
 ├── services/        # 服务层
-│   └── auth.service.ts      # 认证服务（登录业务逻辑）
+│   ├── auth.service.ts      # 认证服务（登录业务逻辑）
+│   ├── movie.service.ts     # 影片服务（业务逻辑）
+│   └── tag.service.ts       # 标签服务（业务逻辑）
 ├── repositories/    # 数据访问层
-│   └── user.repository.ts   # 用户数据访问
+│   ├── user.repository.ts   # 用户数据访问
+│   ├── movie.repository.ts  # 影片数据访问
+│   └── tag.repository.ts    # 标签数据访问
 ├── middlewares/     # 中间件
 │   ├── errorHandler.ts      # 全局错误处理
 │   ├── notFound.ts          # 404 路由处理
@@ -25,13 +32,16 @@ src/
 │   └── index.ts             # 统一导出
 ├── routes/          # 路由定义
 │   ├── index.ts         # 主路由（含健康检查）
-│   └── auth.routes.ts   # 认证路由
+│   ├── auth.routes.ts   # 认证路由
+│   ├── movie.routes.ts  # 影片路由
+│   └── tag.routes.ts    # 标签路由
 ├── utils/           # 工具函数
 │   ├── response.ts       # 统一响应格式工具
 │   ├── logger.ts         # 日志工具
 │   ├── asyncHandler.ts   # 异步路由错误处理包装器
 │   ├── password.util.ts  # 密码加密工具（bcrypt）
-│   └── jwt.util.ts       # JWT 生成与验证工具
+│   ├── jwt.util.ts       # JWT 生成与验证工具
+│   └── file.util.ts      # 文件操作工具
 ├── types/           # TypeScript 类型定义
 │   ├── response.ts  # API 响应类型接口
 │   ├── error.ts     # 自定义错误类型
@@ -326,3 +336,223 @@ model User {
 4. **类型安全** — 充分利用 TypeScript 类型，避免运行时错误
 5. **环境变量** — 所有配置通过环境变量管理，不硬编码敏感信息
 6. **优雅关闭** — 监听 `SIGTERM`/`SIGINT` 信号，安全关闭服务器和数据库连接
+
+---
+
+## 影片收藏系统架构
+
+### 数据模型设计
+
+影片收藏系统使用 4 个数据表，通过 Prisma 管理关系：
+
+```prisma
+// 影片表
+model Movie {
+  id          Int         @id @default(autoincrement())
+  title       String      // 标题
+  type        String      // 类型: movie/tv/anime/anime_movie
+  rating      Float?      // 评分 (0-10)
+  releaseYear Int?        // 上映年份
+  comment     String?     @db.Text  // 个人评语
+  coverImage  String?     // 封面图片相对路径
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  images      Image[]     // 一对多关系：一个影片有多张图片
+  movieTags   MovieTag[]  // 多对多关系：影片-标签中间表
+
+  @@map("movies")
+}
+
+// 图片表
+model Image {
+  id        Int      @id @default(autoincrement())
+  path      String   // 图片相对路径
+  movieId   Int      // 外键：所属影片 ID
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("images")
+}
+
+// 标签表
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique  // 标签名称（唯一）
+  createdAt DateTime   @default(now())
+
+  movieTags MovieTag[]  // 多对多关系：标签-影片中间表
+
+  @@map("tags")
+}
+
+// 影片-标签关联表（多对多中间表）
+model MovieTag {
+  movieId Int
+  tagId   Int
+  movie   Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  tag     Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, tagId])  // 复合主键
+  @@map("movie_tags")
+}
+```
+
+### 关系说明
+
+| 关系类型 | 说明 | 实现方式 |
+|---------|------|---------|
+| **一对多** | Movie ↔ Image | `@relation` + 外键 `movieId`<br>删除影片时级联删除图片 (`onDelete: Cascade`) |
+| **多对多** | Movie ↔ Tag | 通过中间表 `MovieTag` 实现<br>删除影片/标签时级联删除关联记录 |
+
+### 文件上传架构
+
+**文件存储结构：**
+
+```
+uploads/
+└── movies/
+    ├── uuid-timestamp.jpg
+    ├── uuid-timestamp.png
+    └── ...
+```
+
+**上传配置（`src/config/upload.ts`）：**
+
+```typescript
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
+
+// 存储配置
+const storage = multer.diskStorage({
+  destination: 'uploads/movies',
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${uuidv4()}-${Date.now()}${ext}`;
+    cb(null, filename);
+  }
+});
+
+// 文件过滤器：只允许图片类型
+const fileFilter: multer.Options['fileFilter'] = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new ValidationError('不支持的文件类型'));
+  }
+};
+
+export const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }  // 5MB 限制
+});
+```
+
+**安全特性：**
+
+1. **文件类型验证**：仅允许 JPG、PNG、WEBP 格式
+2. **文件大小限制**：最大 5MB（可通过环境变量配置）
+3. **UUID 命名**：避免文件名冲突和路径遍历攻击
+4. **事务一致性**：创建/删除失败时自动清理已上传的文件
+
+### API 端点设计
+
+#### 影片接口
+
+| 方法 | 路径 | 功能 | 鉴权 |
+|------|------|------|------|
+| POST | `/api/v1/movies` | 创建影片（支持上传多张图片） | ✅ |
+| GET | `/api/v1/movies` | 查询影片列表（支持筛选、分页、排序） | ✅ |
+| GET | `/api/v1/movies/:id` | 查询影片详情 | ✅ |
+| PUT | `/api/v1/movies/:id` | 更新影片信息 | ✅ |
+| DELETE | `/api/v1/movies/:id` | 删除影片（级联删除图片和标签关联） | ✅ |
+| POST | `/api/v1/movies/:id/images` | 添加图片到影片 | ✅ |
+| DELETE | `/api/v1/movies/:id/images/:imageId` | 删除影片的图片 | ✅ |
+
+#### 标签接口
+
+| 方法 | 路径 | 功能 | 鉴权 | 权限 |
+|------|------|------|------|------|
+| POST | `/api/v1/tags` | 创建标签 | ✅ | 仅管理员 |
+| GET | `/api/v1/tags` | 查询所有标签 | ✅ | - |
+
+### 高级查询功能
+
+**查询影片列表支持的筛选参数：**
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `page` | number | 页码（默认 1） | `?page=2` |
+| `limit` | number | 每页条数（默认 10，最大 100） | `?limit=20` |
+| `type` | string | 影片类型 | `?type=movie` |
+| `tagIds` | string | 标签 ID 列表（逗号分隔） | `?tagIds=1,2,3` |
+| `minRating` | number | 最低评分 | `?minRating=8.0` |
+| `maxRating` | number | 最高评分 | `?maxRating=9.5` |
+| `minYear` | number | 最早年份 | `?minYear=2020` |
+| `maxYear` | number | 最晚年份 | `?maxYear=2023` |
+| `keyword` | string | 关键词搜索（标题、评语） | `?keyword=星际` |
+| `sortBy` | string | 排序字段 | `?sortBy=rating` |
+| `order` | string | 排序方向（asc/desc） | `?order=desc` |
+
+**示例请求：**
+
+```bash
+# 查询评分 8.0 以上的科幻电影，按评分降序排列
+GET /api/v1/movies?type=movie&tagIds=1&minRating=8.0&sortBy=rating&order=desc
+```
+
+**查询实现特点：**
+
+1. **动态条件构建**：根据传入参数动态构建 Prisma `where` 条件
+2. **关键词搜索**：使用 `contains` + `mode: 'insensitive'` 实现大小写不敏感搜索
+3. **标签筛选**：使用嵌套关系查询 `some` 匹配标签
+4. **性能优化**：
+   - 列表查询只返回封面图（不返回所有图片）
+   - 使用 `include` 避免 N+1 查询
+   - 限制最大查询条数
+
+### 业务流程示例
+
+**创建影片流程：**
+
+```
+客户端上传表单（multipart/form-data）
+   ↓
+multer 中间件处理文件上传
+   ↓
+MovieController（验证参数）
+   ↓
+MovieService（业务逻辑）
+   ├─ 验证标签是否存在
+   ├─ 使用事务创建影片、图片、标签关联
+   └─ 失败时自动清理已上传的文件
+   ↓
+MovieRepository（数据库操作）
+   ↓
+返回创建的影片数据（含图片列表和标签）
+```
+
+**删除影片流程（级联删除）：**
+
+```
+客户端发送删除请求
+   ↓
+MovieController（验证影片 ID）
+   ↓
+MovieService（业务逻辑）
+   ├─ 查询影片及关联的图片
+   ├─ 删除数据库记录（级联删除图片和标签关联）
+   └─ 删除文件系统中的图片文件
+   ↓
+返回删除成功
+```
+
+### 关键技术实现
+
+1. **事务管理**：创建影片时使用 Prisma 事务确保数据一致性
+2. **文件清理**：删除操作失败时自动清理已上传的文件
+3. **级联删除**：使用 `onDelete: Cascade` 自动清理关联数据
+4. **权限控制**：创建标签接口仅管理员可访问（通过 `req.user.role` 验证）
+5. **数据验证**：Controller 和 Service 层都进行数据验证
