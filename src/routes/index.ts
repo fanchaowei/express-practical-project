@@ -20,6 +20,8 @@ import { Router } from 'express';
 // 导入响应工具类，用于统一返回格式
 import { ResponseUtil } from '../utils/response';
 import authRoutes from './auth.routes';
+import movieRoutes from './movie.routes';
+import tagRoutes from './tag.routes';
 
 /**
  * 创建路由实例
@@ -93,6 +95,18 @@ router.get('/api/v1', (_req, res) => {
  * 挂载认证相关的路由到 /api/v1/auth 路径下
  */
 router.use('/api/v1/auth', authRoutes);
+
+/**
+ * 影片路由
+ * 挂载影片相关的路由到 /api/v1/movies 路径下
+ */
+router.use('/api/v1/movies', movieRoutes);
+
+/**
+ * 标签路由
+ * 挂载标签相关的路由到 /api/v1/tags 路径下
+ */
+router.use('/api/v1/tags', tagRoutes);
 
 /**
  * 导出路由器

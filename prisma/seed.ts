@@ -28,26 +28,68 @@ async function main() {
 
   if (existingAdmin) {
     console.log('⚠️  管理员账户已存在，跳过创建');
-    return;
+  } else {
+    // 加密密码
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(adminPassword, salt);
+
+    // 创建管理员账户
+    const admin = await prisma.user.create({
+      data: {
+        username: adminUsername,
+        password: hashedPassword,
+        role: 'admin',
+      },
+    });
+
+    console.log('✅ 管理员账户创建成功:');
+    console.log(`   用户名: ${admin.username}`);
+    console.log(`   角色: ${admin.role}`);
+    console.log(`   ID: ${admin.id}`);
   }
 
-  // 加密密码
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(adminPassword, salt);
+  // 2. 创建预设标签
+  const predefinedTags = [
+    '科幻',
+    '悬疑',
+    '动作',
+    '爱情',
+    '喜剧',
+    '恐怖',
+    '剧情',
+    '动画',
+    '冒险',
+    '犯罪',
+    '历史',
+    '战争',
+    '纪录片',
+    '音乐',
+    '家庭',
+    '高分',
+    '经典',
+    '治愈',
+    '烧脑',
+    '催泪',
+  ];
 
-  // 创建管理员账户
-  const admin = await prisma.user.create({
-    data: {
-      username: adminUsername,
-      password: hashedPassword,
-      role: 'admin',
-    },
-  });
+  console.log('\n🏷️  开始创建预设标签...');
 
-  console.log('✅ 管理员账户创建成功:');
-  console.log(`   用户名: ${admin.username}`);
-  console.log(`   角色: ${admin.role}`);
-  console.log(`   ID: ${admin.id}`);
+  for (const tagName of predefinedTags) {
+    const existingTag = await prisma.tag.findUnique({
+      where: { name: tagName },
+    });
+
+    if (!existingTag) {
+      await prisma.tag.create({
+        data: { name: tagName },
+      });
+      console.log(`   ✅ 标签创建: ${tagName}`);
+    } else {
+      console.log(`   ⏭️  标签已存在: ${tagName}`);
+    }
+  }
+
+  console.log('\n✨ 种子数据创建完成!');
 }
 
 main()

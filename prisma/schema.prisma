@@ -16,3 +16,53 @@ model User {
 
   @@map("users")
 }
+
+model Movie {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String   // "movie" | "tv" | "anime" | "anime_movie"
+  rating      Float?   // 个人评分 (0-10)
+  releaseYear Int?     // 上映年份
+  comment     String?  @db.Text // 个人评语
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images      Image[]
+  movieTags   MovieTag[]
+
+  @@map("movies")
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  movieId   Int
+  path      String   // 相对路径
+  isCover   Boolean  @default(false) // 是否为封面
+  createdAt DateTime @default(now())
+
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("images")
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  movieTags MovieTag[]
+
+  @@map("tags")
+}
+
+model MovieTag {
+  movieId   Int
+  tagId     Int
+  createdAt DateTime @default(now())
+
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, tagId])
+  @@map("movie_tags")
+}
