@@ -113,7 +113,7 @@ export class MovieRepository {
   }
 
   /**
-   * 更新影片信息(不包含图片)
+   * 更新影片信息(使用事务保证一致性)
    */
   static async update(
     id: number,
@@ -126,34 +126,38 @@ export class MovieRepository {
       tagIds?: number[];
     }
   ) {
-    if (data.tagIds !== undefined) {
-      await prisma.movieTag.deleteMany({
-        where: { movieId: id },
-      });
-    }
+    return prisma.$transaction(async (tx) => {
+      // 如果更新标签，先删除旧关联
+      if (data.tagIds !== undefined) {
+        await tx.movieTag.deleteMany({
+          where: { movieId: id },
+        });
+      }
 
-    return prisma.movie.update({
-      where: { id },
-      data: {
-        title: data.title,
-        type: data.type,
-        rating: data.rating,
-        releaseYear: data.releaseYear,
-        comment: data.comment,
-        ...(data.tagIds !== undefined && {
+      // 更新影片信息
+      return tx.movie.update({
+        where: { id },
+        data: {
+          title: data.title,
+          type: data.type,
+          rating: data.rating,
+          releaseYear: data.releaseYear,
+          comment: data.comment,
+          ...(data.tagIds !== undefined && {
+            movieTags: {
+              create: data.tagIds.map((tagId) => ({ tagId })),
+            },
+          }),
+        },
+        include: {
+          images: true,
           movieTags: {
-            create: data.tagIds.map((tagId) => ({ tagId })),
-          },
-        }),
-      },
-      include: {
-        images: true,
-        movieTags: {
-          include: {
-            tag: true,
+            include: {
+              tag: true,
+            },
           },
         },
-      },
+      });
     });
   }
 
