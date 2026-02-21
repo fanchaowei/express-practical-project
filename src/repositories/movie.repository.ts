@@ -7,6 +7,9 @@ import { Movie, Image, Prisma } from '@prisma/client';
 export class MovieRepository {
   /**
    * 创建影片(包含图片和标签)
+   *
+   * 注：Prisma 的嵌套 create 操作隐式使用事务，
+   * 所有嵌套操作（movie + images + movieTags）会在同一事务中执行
    */
   static async create(data: {
     title: string;
@@ -113,7 +116,14 @@ export class MovieRepository {
   }
 
   /**
-   * 更新影片信息(使用事务保证一致性)
+   * 更新影片信息(条件性使用事务保证一致性)
+   *
+   * 事务策略：
+   * - 仅在更新标签时使用事务（deleteMany + update）
+   * - 不更新标签时直接执行 update（单操作本身是原子的）
+   * - 使用交互式事务而非顺序事务，提供更好的灵活性
+   *
+   * 隔离级别：PostgreSQL 默认 Read Committed（足够此场景使用）
    */
   static async update(
     id: number,
@@ -126,15 +136,37 @@ export class MovieRepository {
       tagIds?: number[];
     }
   ) {
-    return prisma.$transaction(async (tx) => {
-      // 如果更新标签，先删除旧关联
-      if (data.tagIds !== undefined) {
-        await tx.movieTag.deleteMany({
-          where: { movieId: id },
-        });
-      }
+    // 如果不更新标签，直接执行 update（无需事务）
+    if (data.tagIds === undefined) {
+      return prisma.movie.update({
+        where: { id },
+        data: {
+          title: data.title,
+          type: data.type,
+          rating: data.rating,
+          releaseYear: data.releaseYear,
+          comment: data.comment,
+        },
+        include: {
+          images: true,
+          movieTags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
+      });
+    }
 
-      // 更新影片信息
+    // 如果更新标签，使用事务保证原子性
+    const tagIds = data.tagIds; // 捕获非 undefined 的值供事务使用
+    return prisma.$transaction(async (tx) => {
+      // 删除旧标签关联
+      await tx.movieTag.deleteMany({
+        where: { movieId: id },
+      });
+
+      // 更新影片信息和标签
       return tx.movie.update({
         where: { id },
         data: {
@@ -143,11 +175,9 @@ export class MovieRepository {
           rating: data.rating,
           releaseYear: data.releaseYear,
           comment: data.comment,
-          ...(data.tagIds !== undefined && {
-            movieTags: {
-              create: data.tagIds.map((tagId) => ({ tagId })),
-            },
-          }),
+          movieTags: {
+            create: tagIds.map((tagId) => ({ tagId })),
+          },
         },
         include: {
           images: true,
