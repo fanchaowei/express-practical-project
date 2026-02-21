@@ -719,22 +719,22 @@ git status
 
 ## 完成检查清单
 
-- [ ] 环境变量已更新（JWT_SECRET、管理员账户配置）
-- [ ] User 模型已添加到 schema.prisma
-- [ ] 数据库迁移已完成，users 表已创建
-- [ ] Prisma Client 已生成
-- [ ] 密码工具（hash/compare）已实现
-- [ ] JWT 工具（generate/verify）已实现
-- [ ] UserRepository 已实现
-- [ ] AuthService 已实现
-- [ ] AuthController 已实现
-- [ ] 认证路由已创建并集成
-- [ ] JWT 鉴权中间件已实现
-- [ ] Seed 脚本已创建并成功运行
-- [ ] 管理员账户已创建（通过 seed）
-- [ ] 登录接口测试通过（成功和失败场景）
-- [ ] 代码格式化和检查通过
-- [ ] 代码已提交到 Git
+- [x] 环境变量已更新（JWT_SECRET、管理员账户配置）
+- [x] User 模型已添加到 schema.prisma
+- [x] 数据库迁移已完成，users 表已创建
+- [x] Prisma Client 已生成
+- [x] 密码工具（hash/compare）已实现
+- [x] JWT 工具（generate/verify）已实现
+- [x] UserRepository 已实现
+- [x] AuthService 已实现
+- [x] AuthController 已实现
+- [x] 认证路由已创建并集成
+- [x] JWT 鉴权中间件已实现
+- [x] Seed 脚本已创建并成功运行
+- [x] 管理员账户已创建（通过 seed）
+- [x] 登录接口测试通过（成功和失败场景）
+- [x] 代码格式化和检查通过
+- [x] 代码已提交到 Git
 
 ---
 

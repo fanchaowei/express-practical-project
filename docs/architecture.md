@@ -11,20 +11,27 @@ src/
 ├── config/          # 配置文件
 │   ├── database.ts  # Prisma 数据库客户端（含 adapter 配置）
 │   └── env.ts       # 环境变量配置与验证
-├── controllers/     # 控制器层（待添加）
-├── services/        # 服务层（待添加）
-├── repositories/    # 数据访问层（待添加）
+├── controllers/     # 控制器层
+│   └── auth.controller.ts   # 认证控制器（登录接口）
+├── services/        # 服务层
+│   └── auth.service.ts      # 认证服务（登录业务逻辑）
+├── repositories/    # 数据访问层
+│   └── user.repository.ts   # 用户数据访问
 ├── middlewares/     # 中间件
-│   ├── errorHandler.ts     # 全局错误处理
-│   ├── notFound.ts         # 404 路由处理
-│   ├── requestLogger.ts    # 请求日志记录
-│   └── index.ts            # 统一导出
+│   ├── errorHandler.ts      # 全局错误处理
+│   ├── notFound.ts          # 404 路由处理
+│   ├── requestLogger.ts     # 请求日志记录
+│   ├── auth.middleware.ts   # JWT 认证中间件
+│   └── index.ts             # 统一导出
 ├── routes/          # 路由定义
-│   └── index.ts     # 主路由（含健康检查）
+│   ├── index.ts         # 主路由（含健康检查）
+│   └── auth.routes.ts   # 认证路由
 ├── utils/           # 工具函数
 │   ├── response.ts       # 统一响应格式工具
 │   ├── logger.ts         # 日志工具
-│   └── asyncHandler.ts   # 异步路由错误处理包装器
+│   ├── asyncHandler.ts   # 异步路由错误处理包装器
+│   ├── password.util.ts  # 密码加密工具（bcrypt）
+│   └── jwt.util.ts       # JWT 生成与验证工具
 ├── types/           # TypeScript 类型定义
 │   ├── response.ts  # API 响应类型接口
 │   ├── error.ts     # 自定义错误类型
@@ -203,6 +210,111 @@ errorHandler 中间件统一处理
 - **Driver Adapter**：使用 `@prisma/adapter-pg` 连接 PostgreSQL
 
 数据库通过 Docker Compose 启动，使用 PostgreSQL 15。
+
+---
+
+## 认证系统架构
+
+### JWT 认证流程
+
+```
+客户端登录
+   ↓
+POST /api/v1/auth/login { username, password }
+   ↓
+AuthController（验证参数）
+   ↓
+AuthService（验证用户、密码）
+   ↓
+UserRepository（查询数据库）
+   ↓
+PasswordUtil.compare（验证密码）
+   ↓
+JwtUtil.generateToken（生成 JWT）
+   ↓
+返回 { token, user }
+```
+
+### 受保护路由访问流程
+
+```
+客户端请求受保护资源
+   ↓
+Headers: Authorization: Bearer <token>
+   ↓
+authMiddleware 中间件拦截
+   ↓
+JwtUtil.verifyToken（验证 JWT）
+   ↓
+req.user = payload（挂载用户信息）
+   ↓
+路由处理函数（可通过 req.user 获取用户信息）
+```
+
+### 认证相关工具
+
+| 工具类 | 职责 | 主要方法 |
+|--------|------|---------|
+| **PasswordUtil** | 密码加密与验证 | `hash(password)` - 加密密码<br>`compare(password, hash)` - 验证密码 |
+| **JwtUtil** | JWT 令牌管理 | `generateToken(payload)` - 生成 JWT<br>`verifyToken(token)` - 验证 JWT<br>`decodeToken(token)` - 解码 JWT（不验证） |
+
+### 数据模型
+
+**User 模型**（`prisma/schema.prisma`）
+
+```prisma
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+```
+
+### 认证 API 端点
+
+| 方法 | 路径 | 功能 | 鉴权 |
+|------|------|------|------|
+| POST | `/api/v1/auth/login` | 用户登录 | 无 |
+
+**登录请求示例：**
+
+```json
+{
+  "username": "admin",
+  "password": "admin123456"
+}
+```
+
+**登录响应示例：**
+
+```json
+{
+  "success": true,
+  "message": "登录成功",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "username": "admin",
+      "role": "admin"
+    }
+  },
+  "timestamp": "2026-02-21T11:11:18.854Z"
+}
+```
+
+### 安全特性
+
+1. **密码加密**：使用 bcrypt 哈希算法（salt rounds: 10）
+2. **JWT 过期时间**：默认 7 天（可通过 `JWT_EXPIRES_IN` 环境变量配置）
+3. **防用户枚举**：用户不存在和密码错误返回相同错误信息
+4. **密码不返回**：登录响应中不包含密码字段
+5. **Token 格式验证**：必须使用 `Bearer <token>` 格式
 
 ---
 
