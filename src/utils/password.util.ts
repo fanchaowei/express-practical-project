@@ -1,0 +1,21 @@
+import bcrypt from 'bcryptjs';
+
+/**
+ * 密码加密工具
+ */
+export class PasswordUtil {
+  /**
+   * 加密密码
+   */
+  static async hash(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
+  /**
+   * 验证密码
+   */
+  static async compare(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
+  }
+}

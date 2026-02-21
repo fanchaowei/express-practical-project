@@ -19,6 +19,7 @@ import { Router } from 'express';
 
 // 导入响应工具类，用于统一返回格式
 import { ResponseUtil } from '../utils/response';
+import authRoutes from './auth.routes';
 
 /**
  * 创建路由实例
@@ -86,6 +87,12 @@ router.get('/api/v1', (_req, res) => {
     message: 'API is running', // 状态消息
   });
 });
+
+/**
+ * 认证路由
+ * 挂载认证相关的路由到 /api/v1/auth 路径下
+ */
+router.use('/api/v1/auth', authRoutes);
 
 /**
  * 导出路由器
